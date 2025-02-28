@@ -9,6 +9,7 @@ class PracticeScreen extends StatefulWidget {
 
   @override
   State<PracticeScreen> createState() => _PracticeScreenState();
+
 }
 
 class _PracticeScreenState extends State<PracticeScreen> {
@@ -92,7 +93,24 @@ class _PracticeScreenState extends State<PracticeScreen> {
             });
 
             // You can update UI, log, or trigger other actions here
-          }),
+          },
+          onUserSpeak: (botMessage) {
+
+            setState(() {
+              chatMessages.add(
+                  ChatMessage(
+                    text: botMessage,
+                    messageType: ChatMessageType.text,
+                    messageStatus: MessageStatus.viewed,
+                    isSender: true,
+                  )
+              );
+            });
+
+            // You can update UI, log, or trigger other actions here
+          },
+
+        ),
       ),
     );
   }

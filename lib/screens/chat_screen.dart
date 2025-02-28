@@ -9,7 +9,8 @@ import '../models/dialogue_model.dart';
 class ChatScreen extends StatefulWidget {
   final List<Chat> dialogues;
   final Function(String)? onBotSpeak; // Optional Callback
-  const ChatScreen({super.key, required this.dialogues, this.onBotSpeak});
+  final Function(String)? onUserSpeak; // Optional Callback
+  const ChatScreen({super.key, required this.dialogues, this.onBotSpeak, this.onUserSpeak});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -67,14 +68,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
       _speechToText.listen(
         onResult: (result) {
-          debugPrint("User said: " + result.toString());
           setState(() {
             _userSpeech = result.recognizedWords;
           });
 
           // Reset silence timer when user speaks
           silenceTimer?.cancel();
-          silenceTimer = Timer(const Duration(seconds: 2), () {
+          silenceTimer = Timer(const Duration(seconds: 5), () {
+            // Trigger callback when bot starts speaking
+            widget.onUserSpeak?.call(_userSpeech);
+
             _stopListening(); // Stop listening if no speech is detected for 2 seconds
           });
         },
@@ -121,6 +124,9 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _checkUserResponse() async {
 
     if (_userSpeech.trim().toLowerCase() == _dialogues[_currentIndex].user.trim().toLowerCase()) {
+      // Trigger callback when bot starts speaking
+      widget.onBotSpeak?.call("Correct! Well done.");
+
       await _speakMessage("Correct! Well done.");
       setState(() {
         _currentIndex++;
@@ -132,6 +138,8 @@ class _ChatScreenState extends State<ChatScreen> {
     }
     else if(_userSpeech.trim().toLowerCase() ==""){
       _currentRetry++;
+      // Trigger callback when bot starts speaking
+      widget.onBotSpeak?.call("Sorry! You didn't say anything.");
       await _speakMessage("Sorry! You didn't say anything.");
       if (_currentRetry >= _maxRetry) {
         _forceStopListening();
@@ -144,6 +152,8 @@ class _ChatScreenState extends State<ChatScreen> {
     }
     else {
       _currentRetry++;
+      // Trigger callback when bot starts speaking
+      widget.onBotSpeak?.call("Incorrect. Try again.");
       await _speakMessage("Incorrect. Try again.");
 
       if (_currentRetry >= _maxRetry) {
