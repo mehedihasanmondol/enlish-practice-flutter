@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_tts/flutter_tts.dart';
 import '../models/dialogue_model.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final List<Chat> dialogues;
+  const ChatScreen({super.key, required this.dialogues});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -17,7 +17,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final stt.SpeechToText _speechToText = stt.SpeechToText();
   final FlutterTts _flutterTts = FlutterTts();
-  List<Dialogue> _dialogues = [];
+  late List<Chat> _dialogues = [];
   int _currentIndex = 0;
   String _userSpeech = "";
   bool _isListening = false;
@@ -31,6 +31,8 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _speakBotDialogue();
+    _dialogues = widget.dialogues;
+
   }
 
 
@@ -115,7 +117,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _checkUserResponse() async {
 
-    print("current try: $_currentRetry");
     if (_userSpeech.trim().toLowerCase() == _dialogues[_currentIndex].user.trim().toLowerCase()) {
       await _speakMessage("Correct! Well done.");
       setState(() {
@@ -163,41 +164,32 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Practice Chat")),
-      body: Column(
-        children: [
-          Text(
-            _dialogues.isNotEmpty ? _dialogues[_currentIndex].bot : "Loading...",
-            style: const TextStyle(fontSize: 20),
-          ),
-          !_isListening ?
-          ElevatedButton(
-            onPressed: (){
-              setState(() {
-                _currentRetry = 0;
-                _stopRequested = false; // ইউজার ইচ্ছা করে বন্ধ করলো
-              });
+    return IconButton(
+      onPressed: (){
+        if(!_isListening){
+          setState(() {
+            _currentRetry = 0;
+            _stopRequested = false; // ইউজার ইচ্ছা করে বন্ধ করলো
+          });
 
-              if (_isListening) {
-                _stopListening();
-              }
-              else{
-                _startListening();
-              }
+          if (_isListening) {
+            _stopListening();
+          }
+          else{
+            _startListening();
+          }
+        }
+        else{
+          _forceStopListening();
+        }
 
-            },
-            child: Text(_isListening ? "Listening..." : "Tap to Speak"),
-          )
-          :
-          ElevatedButton(
-            onPressed: _forceStopListening, // নতুন স্টপ বাটন
-            child: const Text("Stop Listening"),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red,foregroundColor: Colors.white),
-          ),
-          Text("You said: $_userSpeech", style: const TextStyle(fontSize: 18)),
-        ],
+      },
+      icon: Icon(
+        _isListening? Icons.stop_circle : Icons.play_circle_filled,
+        color: Colors.white,
       ),
     );
+
+
   }
 }

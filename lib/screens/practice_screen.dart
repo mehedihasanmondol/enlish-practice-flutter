@@ -70,8 +70,13 @@ class _PracticeScreenState extends State<PracticeScreen> {
               ),
             ),
           ),
-          ChatScreen()
+
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: const Color(0xFF00BF6D),
+        child: ChatScreen(dialogues:widget.dialogue.chats),
       ),
     );
   }
