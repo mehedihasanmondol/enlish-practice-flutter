@@ -1,0 +1,39 @@
+[
+  {
+    "name": "Jenny Wilson",
+    "lastMessage": "Hope you are doing well...",
+    "image": "https://i.postimg.cc/g25VYN7X/user-1.png",
+    "time": "3m ago",
+    "isActive": false,
+    "dialogs": [
+      {
+        "bot": "Hello! How are you?",
+        "user": "I am fine How about you"
+      },
+      {
+        "bot": "How can i help you?",
+        "user": "I want to buy a product"
+      }
+    ]
+
+  },
+  {
+    "name": "Mehedi hasan",
+    "lastMessage": "You are so nice...",
+    "image": "https://i.postimg.cc/cCsYDjvj/user-2.png",
+    "time": "5m ago",
+    "isActive": false,
+    "dialogs": [
+      {
+        "bot": "What is your name",
+        "user": "My name is mehedi hasan"
+      },
+      {
+        "bot": "Do you have any specific requirement",
+        "user": "Yes. Modern and responsive website."
+      }
+    ]
+
+  }
+
+]
