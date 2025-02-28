@@ -8,7 +8,8 @@ import '../models/dialogue_model.dart';
 
 class ChatScreen extends StatefulWidget {
   final List<Chat> dialogues;
-  const ChatScreen({super.key, required this.dialogues});
+  final Function(String)? onBotSpeak; // Optional Callback
+  const ChatScreen({super.key, required this.dialogues, this.onBotSpeak});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -30,15 +31,17 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    _speakBotDialogue();
     _dialogues = widget.dialogues;
-
   }
 
 
   Future<void> _speakBotDialogue() async {
+
     if (_dialogues.isNotEmpty && _currentIndex < _dialogues.length) {
       setState(() => _isSpeaking = true); // রোবট কথা বলছে
+
+      // Trigger callback when bot starts speaking
+      widget.onBotSpeak?.call(_dialogues[_currentIndex].bot);
 
       await _flutterTts.speak(_dialogues[_currentIndex].bot);
 
@@ -164,28 +167,32 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: (){
-        if(!_isListening){
-          setState(() {
-            _currentRetry = 0;
-            _stopRequested = false; // ইউজার ইচ্ছা করে বন্ধ করলো
-          });
-
-          if (_isListening) {
-            _stopListening();
-          }
-          else{
-            _startListening();
-          }
-        }
-        else{
+    return
+      _isListening ?
+      IconButton(
+        onPressed: (){
           _forceStopListening();
-        }
+        },
+        icon: Icon(
+          Icons.stop_circle,
+          color: Colors.white,
+        ),
+      )
+      :
+
+      IconButton(
+      onPressed: (){
+        setState(() {
+          _currentRetry = 0;
+          _stopRequested = false; // ইউজার ইচ্ছা করে বন্ধ করলো
+        });
+
+        _speakBotDialogue();
+
 
       },
       icon: Icon(
-        _isListening? Icons.stop_circle : Icons.play_circle_filled,
+        Icons.play_circle_filled,
         color: Colors.white,
       ),
     );

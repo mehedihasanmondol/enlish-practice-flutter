@@ -7,12 +7,12 @@ class PracticeScreen extends StatefulWidget {
   final Dialogue dialogue;
   const PracticeScreen({super.key, required this.dialogue});
 
-
   @override
   State<PracticeScreen> createState() => _PracticeScreenState();
 }
 
 class _PracticeScreenState extends State<PracticeScreen> {
+  final List<ChatMessage> chatMessages = [];
   @override
   Widget build(BuildContext context) {
 
@@ -76,7 +76,23 @@ class _PracticeScreenState extends State<PracticeScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
         backgroundColor: const Color(0xFF00BF6D),
-        child: ChatScreen(dialogues:widget.dialogue.chats),
+        child: ChatScreen(
+          dialogues:widget.dialogue.chats,
+          onBotSpeak: (botMessage) {
+
+            setState(() {
+              chatMessages.add(
+                  ChatMessage(
+                    text: botMessage,
+                    messageType: ChatMessageType.text,
+                    messageStatus: MessageStatus.viewed,
+                    isSender: false,
+                  )
+              );
+            });
+
+            // You can update UI, log, or trigger other actions here
+          }),
       ),
     );
   }
@@ -212,18 +228,4 @@ class ChatMessage {
   });
 }
 
-List chatMessages = [
-  ChatMessage(
-    text: "Hello, How are you?",
-    messageType: ChatMessageType.text,
-    messageStatus: MessageStatus.viewed,
-    isSender: false,
-  ),
-  ChatMessage(
-    text: "Iah i am find",
-    messageType: ChatMessageType.text,
-    messageStatus: MessageStatus.viewed,
-    isSender: true,
-  ),
 
-];
