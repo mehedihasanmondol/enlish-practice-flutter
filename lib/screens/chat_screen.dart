@@ -74,7 +74,6 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_isSpeaking || _isListening || _stopRequested) return;
 
     bool available = await _speechToText.initialize(onStatus: (status){
-      print("onStatus: $status");
       if (status == "done") {
         if(_userSpeech == ""){
           _stopListening(); // Stop listening if no speech is detected for 2 seconds
@@ -147,38 +146,41 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Trigger callback when bot starts speaking
     // widget.onUserSpeak?.call(_userSpeech);
-
-    if (_userSpeech.trim().toLowerCase() == _dialogues[_currentIndex].user.trim().toLowerCase()) {
+    
+    if (_userSpeech.trim().toLowerCase() == _dialogues[_currentIndex].user.trim().toLowerCase().replaceAll(RegExp(r'[^a-zA-Z ]'), '')) {
       // Trigger callback when bot starts speaking
       widget.onBotSpeak?.call("Correct! Well done.");
 
       await _speakMessage("Correct! Well done.");
-      setState(() async {
+      setState(() {
         _currentIndex++;
         _currentRetry = 0;
-        if (_currentIndex < _dialogues.length) {
-          _flutterTts.setCompletionHandler(() {
-            _speakBotDialogue();
 
-          });
-
-
-        }
-        else{
-
-          // Trigger callback when bot starts speaking
-          widget.onDialogueComplete?.call();
-          _startAgain = true;
-          // Trigger callback when bot starts speaking
-
-          _flutterTts.setCompletionHandler(() async {
-            widget.onBotSpeak?.call("You are Successfully completed the dialogue.");
-            await _speakMessage("You are Successfully completed the dialogue.");
-          });
-
-
-        }
       });
+
+      if (_currentIndex < _dialogues.length) {
+        _flutterTts.setCompletionHandler(() {
+          _speakBotDialogue();
+
+        });
+      }
+      else{
+
+        // Trigger callback when bot starts speaking
+        widget.onDialogueComplete?.call();
+        setState(() {
+          _startAgain = true;
+        });
+
+        // Trigger callback when bot starts speaking
+
+        _flutterTts.setCompletionHandler(() async {
+          widget.onBotSpeak?.call("You are Successfully completed the dialogue.");
+          await _speakMessage("You are Successfully completed the dialogue.");
+        });
+
+
+      }
     }
     else if(_userSpeech.trim().toLowerCase() ==""){
       _currentRetry++;
