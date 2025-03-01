@@ -146,7 +146,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Trigger callback when bot starts speaking
     // widget.onUserSpeak?.call(_userSpeech);
-    
+
     if (_userSpeech.trim().toLowerCase() == _dialogues[_currentIndex].user.trim().toLowerCase().replaceAll(RegExp(r'[^a-zA-Z ]'), '')) {
       // Trigger callback when bot starts speaking
       widget.onBotSpeak?.call("Correct! Well done.");

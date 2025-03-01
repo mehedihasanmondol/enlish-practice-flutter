@@ -166,7 +166,7 @@ class ChatCard extends StatelessWidget {
             ),
             Opacity(
               opacity: 0.64,
-              child: Text(chat.time),
+              child: Text("${chat.chats.length} line"),
             ),
           ],
         ),

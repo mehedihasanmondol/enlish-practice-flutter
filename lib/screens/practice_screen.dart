@@ -71,7 +71,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
                   style: const TextStyle(fontSize: 16),
                 ),
                 Text(
-                  widget.dialogue.time,
+
+
+                  "${widget.dialogue.chats.length} line",
                   style: const TextStyle(fontSize: 12),
                 )
               ],
