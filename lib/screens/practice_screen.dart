@@ -1,3 +1,4 @@
+import 'package:english_practice/widgets/smart_image.dart';
 import 'package:flutter/material.dart';
 
 import '../models/dialogue_model.dart';
@@ -41,9 +42,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
         title: Row(
           children: [
             const BackButton(),
-            CircleAvatar(
-              backgroundImage: NetworkImage(widget.dialogue.image),
-            ),
+            SmartImage(imageUrl: widget.dialogue.image),
             const SizedBox(width: 16.0 * 0.75),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

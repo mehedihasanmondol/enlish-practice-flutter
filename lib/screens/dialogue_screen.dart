@@ -2,6 +2,8 @@ import 'package:english_practice/screens/practice_screen.dart';
 import 'package:flutter/material.dart';
 import '../models/dialogue_model.dart';
 import '../utils/dialogue_loader.dart';
+import '../utils/image_loader.dart';
+import '../widgets/smart_image.dart';
 
 class DialogueScreen extends StatefulWidget {
   const DialogueScreen({super.key});
@@ -222,7 +224,7 @@ class CircleAvatarWithActiveIndicator extends StatelessWidget {
     super.key,
     this.image,
     this.radius = 24,
-    this.isActive,
+    this.isActive = false, // Default value to prevent null errors
   });
 
   final String? image;
@@ -233,11 +235,8 @@ class CircleAvatarWithActiveIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        CircleAvatar(
-          radius: radius,
-          backgroundImage: NetworkImage(image!),
-        ),
-        if (isActive!)
+        SmartImage(imageUrl: image),
+        if (isActive == true) // Prevent null errors
           Positioned(
             right: 0,
             bottom: 0,
@@ -248,10 +247,12 @@ class CircleAvatarWithActiveIndicator extends StatelessWidget {
                 color: const Color(0xFF00BF6D),
                 shape: BoxShape.circle,
                 border: Border.all(
-                    color: Theme.of(context).scaffoldBackgroundColor, width: 3),
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  width: 3,
+                ),
               ),
             ),
-          )
+          ),
       ],
     );
   }
