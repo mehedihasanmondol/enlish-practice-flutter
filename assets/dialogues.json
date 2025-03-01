@@ -16,24 +16,6 @@
       }
     ]
 
-  },
-  {
-    "name": "Mehedi hasan",
-    "lastMessage": "You are so nice...",
-    "image": "https://i.postimg.cc/cCsYDjvj/user-2.png",
-    "time": "5m ago",
-    "isActive": false,
-    "dialogs": [
-      {
-        "bot": "What is your name",
-        "user": "My name is mehedi hasan"
-      },
-      {
-        "bot": "Do you have any specific requirement",
-        "user": "Yes. Modern and responsive website."
-      }
-    ]
-
   }
 
 ]

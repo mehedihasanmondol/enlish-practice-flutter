@@ -12,6 +12,27 @@ class DialogueScreen extends StatefulWidget {
 }
 
 class DialogueScreenState extends State<DialogueScreen> {
+  bool isDownloading = false;
+  Future<void> startDownload() async {
+    setState(() {
+      isDownloading = true;
+    });
+
+    try {
+      var loadedData = await DialogueLoader.downloadJson();
+      setState(() {
+        DialogueScreen.chatsData = loadedData;
+      });
+
+    } catch (e) {
+      print("Error: ${e.toString()}");
+    } finally {
+      setState(() {
+        isDownloading = false;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -38,13 +59,13 @@ class DialogueScreenState extends State<DialogueScreen> {
         backgroundColor: const Color(0xFF00BF6D),
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
-        title: const Text("Chats"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
-          ),
-        ],
+        title: Row(
+          children: [
+            BackButton(),
+            const Text("Dialogues")
+          ],
+        ),
+
       ),
       body: Column(
         children: [
@@ -53,12 +74,15 @@ class DialogueScreenState extends State<DialogueScreen> {
             color: const Color(0xFF00BF6D),
             child: Row(
               children: [
-                FillOutlineButton(press: () {}, text: "Recent Message"),
                 const SizedBox(width: 16.0),
                 FillOutlineButton(
-                  press: () {},
-                  text: "Active",
+                  press: () {
+                    isDownloading ? null : startDownload();
+                  },
+                  text: isDownloading ? "Downloading..." : "Update Dialogue",
                   isFilled: false,
+                  icon: Icons.cloud_download,
+
                 ),
               ],
             ),
@@ -155,11 +179,13 @@ class FillOutlineButton extends StatelessWidget {
     this.isFilled = true,
     required this.press,
     required this.text,
+    this.icon, // Optional icon parameter
   });
 
   final bool isFilled;
   final VoidCallback press;
   final String text;
+  final IconData? icon; // Nullable icon
 
   @override
   Widget build(BuildContext context) {
@@ -171,12 +197,21 @@ class FillOutlineButton extends StatelessWidget {
       elevation: isFilled ? 2 : 0,
       color: isFilled ? Colors.white : Colors.transparent,
       onPressed: press,
-      child: Text(
-        text,
-        style: TextStyle(
-          color: isFilled ? const Color(0xFF1D1D35) : Colors.white,
-          fontSize: 12,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 18, color: isFilled ? const Color(0xFF1D1D35) : Colors.white),
+            const SizedBox(width: 8), // Space between icon and text
+          ],
+          Text(
+            text,
+            style: TextStyle(
+              color: isFilled ? const Color(0xFF1D1D35) : Colors.white,
+              fontSize: 12,
+            ),
+          ),
+        ],
       ),
     );
   }
