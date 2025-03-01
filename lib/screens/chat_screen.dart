@@ -54,6 +54,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _startListening() async {
+    _justStopListening();
 
     if (_isSpeaking || _isListening || _stopRequested) return;
 
@@ -74,16 +75,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
           // Reset silence timer when user speaks
           silenceTimer?.cancel();
-          silenceTimer = Timer(const Duration(seconds: 5), () {
-            // Trigger callback when bot starts speaking
-            widget.onUserSpeak?.call(_userSpeech);
-
+          silenceTimer = Timer(const Duration(seconds: 2), () {
             _stopListening(); // Stop listening if no speech is detected for 2 seconds
+
           });
         },
         onSoundLevelChange: (level) {
-          if (_stopRequested) return;
-
+          if (_isSpeaking || _stopRequested) return;
 
           _soundLevel = level;
 
@@ -91,10 +89,12 @@ class _ChatScreenState extends State<ChatScreen> {
             // Reset silence timer if user is speaking
             silenceTimer?.cancel();
           }
-          else{
+          else {
             defaultSilenceTimer?.cancel();
             defaultSilenceTimer = Timer(const Duration(seconds: 1), () {
-              _stopListening(); // Stop listening if no speech is detected for 2 seconds
+              if(_userSpeech == ""){
+                _stopListening(); // Stop listening if no speech is detected for 2 seconds
+              }
             });
 
           }
@@ -111,6 +111,14 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     _checkUserResponse();
   }
+  void _justStopListening() {
+    _speechToText.stop();
+    setState(() {
+      _isListening = false;
+      _userSpeech = "";
+    });
+  }
+
 
   void _forceStopListening() {
     _speechToText.stop();
@@ -122,6 +130,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
 
   Future<void> _checkUserResponse() async {
+
+    // Trigger callback when bot starts speaking
+    widget.onUserSpeak?.call(_userSpeech);
 
     if (_userSpeech.trim().toLowerCase() == _dialogues[_currentIndex].user.trim().toLowerCase()) {
       // Trigger callback when bot starts speaking
@@ -164,6 +175,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _startListening();
       }
     }
+
   }
 
   Future<void> _speakMessage(String message) async {

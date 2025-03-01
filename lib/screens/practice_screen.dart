@@ -14,6 +14,19 @@ class PracticeScreen extends StatefulWidget {
 
 class _PracticeScreenState extends State<PracticeScreen> {
   final List<ChatMessage> chatMessages = [];
+  final ScrollController _scrollController = ScrollController(); // Add Scroll Controller
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -65,6 +78,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: ListView.builder(
+                controller: _scrollController, // Attach Scroll Controller
                 itemCount: chatMessages.length,
                 itemBuilder: (context, index) =>
                     Message(message: chatMessages[index]),
@@ -72,6 +86,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
             ),
           ),
 
+          const SizedBox(height: 100)
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -90,6 +105,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     isSender: false,
                   )
               );
+              _scrollToBottom(); // Scroll to bottom
             });
 
             // You can update UI, log, or trigger other actions here
