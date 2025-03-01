@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:confetti/confetti.dart';
 import 'package:english_practice/widgets/smart_image.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +20,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
   final List<ChatMessage> chatMessages = [];
   final ScrollController _scrollController = ScrollController(); // Add Scroll Controller
   late ConfettiController _confettiController; // Confetti Controller
+  bool _speakingMessage = false;
 
   @override
   void initState() {
@@ -118,6 +121,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
           onBotSpeak: (botMessage) {
 
             setState(() {
+              _speakingMessage = false;
               chatMessages.add(
                   ChatMessage(
                     text: botMessage,
@@ -142,10 +146,38 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     isSender: true,
                   )
               );
+              _scrollToBottom(); // Scroll to bottom
             });
 
             // You can update UI, log, or trigger other actions here
           },
+          onUserSpeaking: (botMessage) {
+            if(_speakingMessage){
+              chatMessages.removeLast();
+            }
+            // for (var position in _speakingMessageIndex) {
+            //   chatMessages.removeAt(position);
+            //
+            // }
+            // _speakingMessageIndex = [];
+
+            setState(() {
+              chatMessages.add(
+                  ChatMessage(
+                    text: botMessage,
+                    messageType: ChatMessageType.text,
+                    messageStatus: MessageStatus.viewed,
+                    isSender: true,
+                  )
+              );
+              _speakingMessage = true;
+
+              _scrollToBottom(); // Scroll to bottom
+            });
+
+            // You can update UI, log, or trigger other actions here
+          },
+
             onHint: (botMessage) {
             setState(() {
               chatMessages.add(
@@ -156,6 +188,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     isSender: true,
                   )
               );
+              _scrollToBottom(); // Scroll to bottom
             });
 
             // You can update UI, log, or trigger other actions here

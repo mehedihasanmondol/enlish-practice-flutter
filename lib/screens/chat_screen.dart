@@ -11,6 +11,7 @@ class ChatScreen extends StatefulWidget {
   final Function(String)? onBotSpeak; // Optional Callback
   final Function(String)? onHint; // Optional Callback
   final Function(String)? onUserSpeak; // Optional Callback
+  final Function(String)? onUserSpeaking; // Optional Callback
   final Function()? onDialogueComplete; // Optional Callback
   final Function()? onStartAgain; // Optional Callback
   const ChatScreen({super.key,
@@ -20,6 +21,7 @@ class ChatScreen extends StatefulWidget {
     this.onDialogueComplete,
     this.onStartAgain,
     this.onHint,
+    this.onUserSpeaking,
   });
 
   @override
@@ -34,7 +36,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String _userSpeech = "";
   bool _isListening = false;
   bool _startAgain = false;
-  int _maxRetry = 3;
+  int _maxRetry = 30;
   int _currentRetry = 0;
   bool _isSpeaking = false; // রোবট কথা বললে true
   double _soundLevel = 0.0; // সাউন্ড লেভেল ট্র্যাক করতে হবে
@@ -71,7 +73,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
     if (_isSpeaking || _isListening || _stopRequested) return;
 
-    bool available = await _speechToText.initialize();
+    bool available = await _speechToText.initialize(onStatus: (status){
+      print("onStatus: $status");
+      if (status == "done") {
+        if(_userSpeech == ""){
+          _stopListening(); // Stop listening if no speech is detected for 2 seconds
+        }
+      }
+    });
     if (available) {
       setState(() {
         _isListening = true;
@@ -85,6 +94,8 @@ class _ChatScreenState extends State<ChatScreen> {
           setState(() {
             _userSpeech = result.recognizedWords;
           });
+          // Trigger callback when bot starts speaking
+          widget.onUserSpeaking?.call(_userSpeech);
 
           // Reset silence timer when user speaks
           silenceTimer?.cancel();
@@ -102,16 +113,6 @@ class _ChatScreenState extends State<ChatScreen> {
             // Reset silence timer if user is speaking
             silenceTimer?.cancel();
           }
-          else {
-            defaultSilenceTimer?.cancel();
-            defaultSilenceTimer = Timer(const Duration(seconds: 4), () {
-              if(_userSpeech == ""){
-                _stopListening(); // Stop listening if no speech is detected for 2 seconds
-              }
-            });
-
-          }
-
         },
       );
     }
@@ -145,7 +146,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _checkUserResponse() async {
 
     // Trigger callback when bot starts speaking
-    widget.onUserSpeak?.call(_userSpeech);
+    // widget.onUserSpeak?.call(_userSpeech);
 
     if (_userSpeech.trim().toLowerCase() == _dialogues[_currentIndex].user.trim().toLowerCase()) {
       // Trigger callback when bot starts speaking
@@ -170,8 +171,12 @@ class _ChatScreenState extends State<ChatScreen> {
           _startAgain = true;
           // Trigger callback when bot starts speaking
 
-          widget.onBotSpeak?.call("You are Successfully completed the dialogue.");
-          await _speakMessage("You are Successfully completed the dialogue.");
+          _flutterTts.setCompletionHandler(() async {
+            widget.onBotSpeak?.call("You are Successfully completed the dialogue.");
+            await _speakMessage("You are Successfully completed the dialogue.");
+          });
+
+
         }
       });
     }
@@ -224,6 +229,7 @@ class _ChatScreenState extends State<ChatScreen> {
           setState(() {
             _startAgain = false;
             _currentIndex = 0;
+            _currentRetry = 0;
           });
 
           // Trigger callback when bot starts speaking
