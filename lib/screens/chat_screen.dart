@@ -9,8 +9,18 @@ import '../models/dialogue_model.dart';
 class ChatScreen extends StatefulWidget {
   final List<Chat> dialogues;
   final Function(String)? onBotSpeak; // Optional Callback
+  final Function(String)? onHint; // Optional Callback
   final Function(String)? onUserSpeak; // Optional Callback
-  const ChatScreen({super.key, required this.dialogues, this.onBotSpeak, this.onUserSpeak});
+  final Function()? onDialogueComplete; // Optional Callback
+  final Function()? onStartAgain; // Optional Callback
+  const ChatScreen({super.key,
+    required this.dialogues,
+    this.onBotSpeak,
+    this.onUserSpeak,
+    this.onDialogueComplete,
+    this.onStartAgain,
+    this.onHint,
+  });
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -23,6 +33,7 @@ class _ChatScreenState extends State<ChatScreen> {
   int _currentIndex = 0;
   String _userSpeech = "";
   bool _isListening = false;
+  bool _startAgain = false;
   int _maxRetry = 3;
   int _currentRetry = 0;
   bool _isSpeaking = false; // রোবট কথা বললে true
@@ -48,6 +59,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
       _flutterTts.setCompletionHandler(() {
         setState(() => _isSpeaking = false); // কথা বলা শেষ
+        // Trigger callback when bot starts speaking
+        widget.onHint?.call(_dialogues[_currentIndex].user);
         _startListening(); // এখন ইউজারের কথা শোনা শুরু হবে
       });
     }
@@ -91,7 +104,7 @@ class _ChatScreenState extends State<ChatScreen> {
           }
           else {
             defaultSilenceTimer?.cancel();
-            defaultSilenceTimer = Timer(const Duration(seconds: 1), () {
+            defaultSilenceTimer = Timer(const Duration(seconds: 4), () {
               if(_userSpeech == ""){
                 _stopListening(); // Stop listening if no speech is detected for 2 seconds
               }
@@ -139,11 +152,26 @@ class _ChatScreenState extends State<ChatScreen> {
       widget.onBotSpeak?.call("Correct! Well done.");
 
       await _speakMessage("Correct! Well done.");
-      setState(() {
+      setState(() async {
         _currentIndex++;
         _currentRetry = 0;
         if (_currentIndex < _dialogues.length) {
-          _speakBotDialogue();
+          _flutterTts.setCompletionHandler(() {
+            _speakBotDialogue();
+
+          });
+
+
+        }
+        else{
+
+          // Trigger callback when bot starts speaking
+          widget.onDialogueComplete?.call();
+          _startAgain = true;
+          // Trigger callback when bot starts speaking
+
+          widget.onBotSpeak?.call("You are Successfully completed the dialogue.");
+          await _speakMessage("You are Successfully completed the dialogue.");
         }
       });
     }
@@ -156,9 +184,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _forceStopListening();
         return;
       }
-      if(!_stopRequested){
-        _startListening();
-      }
+
 
     }
     else {
@@ -171,9 +197,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _forceStopListening();
         return;
       }
-      if(!_stopRequested){
-        _startListening();
-      }
+
     }
 
   }
@@ -182,14 +206,36 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() => _isSpeaking = true); // রোবট কথা বলছে
     await _flutterTts.speak(message);
     _flutterTts.setCompletionHandler(() {
+
       setState(() => _isSpeaking = false); // রোবট কথা বলা শেষ
-      _startListening(); // ইউজারের কথা শোনা শুরু হবে
+      if (_currentIndex < _dialogues.length) {
+        _startListening(); // ইউজারের কথা শোনা শুরু হবে
+
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return
+      _startAgain ?
+      IconButton(
+        onPressed: (){
+          setState(() {
+            _startAgain = false;
+            _currentIndex = 0;
+          });
+
+          // Trigger callback when bot starts speaking
+          widget.onStartAgain?.call();
+          _speakBotDialogue();
+        },
+        icon: Icon(
+          Icons.restart_alt,
+          color: Colors.white,
+        ),
+      )
+      :
       _isListening ?
       IconButton(
         onPressed: (){

@@ -1,3 +1,4 @@
+import 'package:confetti/confetti.dart';
 import 'package:english_practice/widgets/smart_image.dart';
 import 'package:flutter/material.dart';
 
@@ -16,6 +17,21 @@ class PracticeScreen extends StatefulWidget {
 class _PracticeScreenState extends State<PracticeScreen> {
   final List<ChatMessage> chatMessages = [];
   final ScrollController _scrollController = ScrollController(); // Add Scroll Controller
+  late ConfettiController _confettiController; // Confetti Controller
+
+  @override
+  void initState() {
+    super.initState();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 5)); // Initialize Confetti
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose(); // Dispose controller to avoid memory leaks
+    super.dispose();
+
+  }
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -73,6 +89,12 @@ class _PracticeScreenState extends State<PracticeScreen> {
       ),
       body: Column(
         children: [
+          ConfettiWidget(
+            confettiController: _confettiController, // Make sure to pass the controller
+            blastDirectionality: BlastDirectionality.explosive, // Choose the direction
+            shouldLoop: false, // Set to true if you want continuous confetti
+            colors: [Colors.red, Colors.blue, Colors.green, Colors.yellow], // Confetti colors
+          ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -124,6 +146,29 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
             // You can update UI, log, or trigger other actions here
           },
+            onHint: (botMessage) {
+            setState(() {
+              chatMessages.add(
+                  ChatMessage(
+                    text: botMessage,
+                    messageType: ChatMessageType.text,
+                    messageStatus: MessageStatus.hint,
+                    isSender: true,
+                  )
+              );
+            });
+
+            // You can update UI, log, or trigger other actions here
+          },
+
+          onDialogueComplete: () {
+            _confettiController.play(); // Play confetti animation
+          },
+          onStartAgain:(){
+            setState(() {
+              chatMessages.clear();
+            });
+          }
 
         ),
       ),
@@ -155,7 +200,17 @@ class Message extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(top: 16.0),
-      child: Row(
+      child:
+      message.messageStatus == MessageStatus.hint ?
+      Row(
+        children: [
+          Expanded(
+            child: messageContaint(message),
+          )
+        ],
+      )
+      :
+      Row(
         mainAxisAlignment:
         message.isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
@@ -193,11 +248,20 @@ class TextMessage extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: const Color(0xFF00BF6D).withOpacity(message!.isSender ? 1 : 0.1),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius:
+        message?.messageStatus == MessageStatus.hint ?
+        BorderRadius.circular(0):
+          BorderRadius.circular(30),
       ),
       child: Text(
         message!.text,
         style: TextStyle(
+
+          fontSize:
+          message?.messageStatus == MessageStatus.hint ?
+          20.0:
+          14.0
+          , // Adjust the font size as needed
           color: message!.isSender
               ? Colors.white
               : Theme.of(context).textTheme.bodyLarge!.color,
@@ -245,7 +309,7 @@ class MessageStatusDot extends StatelessWidget {
 
 enum ChatMessageType { text, audio, image, video }
 
-enum MessageStatus { notSent, notView, viewed }
+enum MessageStatus { notSent, notView, viewed, hint }
 
 class ChatMessage {
   final String text;
